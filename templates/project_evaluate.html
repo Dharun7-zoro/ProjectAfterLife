@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}Evaluate & Fund: {{ project['project_title'] }} | Project After Life{% endblock %}
+
+{% block content %}
+<div class="container" data-current-project-id="{{ project['id'] }}">
+    <!-- Breadcrumb & Context Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+        <div style="font-size: 0.88rem; color: var(--text-muted);">
+            <a href="{{ url_for('company_explorer') }}">Project Explorer</a> &gt; 
+            <a href="{{ url_for('project_detail', project_id=project['id']) }}">{{ project['project_title'] }}</a> &gt;
+            <span>Project Evaluation & Funding</span>
+        </div>
+
+        <a href="{{ url_for('company_funding') }}" class="btn btn-secondary btn-sm">
+            <i class="fa-solid fa-arrow-left"></i> Back to Funding Dashboard
+        </a>
+    </div>
+
+    <!-- Header Box with Lifecycle Stage Tracker -->
+    <div class="glass-panel" style="padding: 32px; margin-bottom: 30px;">
+        <div class="role-badge company" style="margin-bottom: 8px;">
+            <i class="fa-solid fa-scale-balanced"></i> Module 3: Project Selection & Funding Management
+        </div>
+        <h1 style="font-size: 2.1rem; margin-bottom: 8px;">Evaluation Panel: {{ project['project_title'] }}</h1>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Assess technical merits, AI insights, and execute stage-gated milestone funding decisions.
+        </p>
+
+        <!-- Lifecycle Stepper: Interested -> Shortlisted -> Discussion -> Funding Proposed -> Funding Approved -> Development Started -->
+        <div style="margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border-color);">
+            <div style="font-size: 0.8rem; text-transform: uppercase; font-weight: 700; color: #a5b4fc; margin-bottom: 12px;">
+                Commercial Project Lifecycle:
+            </div>
+            
+            {% set lifecycle_stages = ['Interested', 'Shortlisted', 'Discussion', 'Funding Proposed', 'Funding Approved', 'Development Started'] %}
+            {% set cur_status = interest['status'] if interest else project['funding_status'] %}
+            {% set cur_idx = lifecycle_stages.index(cur_status) if cur_status in lifecycle_stages else -1 %}
+
+            <div class="lifecycle-tracker">
+                {% for stage in lifecycle_stages %}
+                    {% set idx = loop.index0 %}
+                    <div class="step-node {% if cur_idx >= idx %}completed{% elif cur_idx == idx %}current{% endif %}">
+                        <div class="step-circle">
+                            {% if cur_idx > idx %}
+                                <i class="fa-solid fa-check"></i>
+                            {% elif cur_idx == idx %}
+                                <i class="fa-solid fa-circle-dot"></i>
+                            {% else %}
+                                {{ loop.index }}
+                            {% endif %}
+                        </div>
+                        <div class="step-label">{{ stage }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2-Column Evaluation Grid -->
+    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px;">
+        <!-- Left: Project Dossier & AI Analysis -->
+        <div>
+            <!-- Overview Dossier -->
+            <div class="glass-panel" style="padding: 28px; margin-bottom: 24px;">
+                <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 16px;">
+                    <i class="fa-solid fa-clipboard-list"></i> Candidate Specification Dossier
+                </h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; font-size: 0.9rem;">
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.78rem; text-transform: uppercase;">Lead Student</span>
+                        <strong style="color: #fff;">{{ project['student_name'] }}</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.78rem; text-transform: uppercase;">Academic Institution</span>
+                        <strong style="color: #fff;">{{ project['college_name'] }}</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.78rem; text-transform: uppercase;">Hackathon Origin</span>
+                        <strong style="color: #fff;">{{ project['hackathon_name'] }}</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted); display: block; font-size: 0.78rem; text-transform: uppercase;">Expected Capital</span>
+                        <strong style="color: #34d399; font-size: 1.1rem;">${{ "{:,.2f}".format(project['expected_funding']) }}</strong>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <span style="color: #f87171; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; display: block; margin-bottom: 4px;">Problem Statement:</span>
+                    <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.5;">{{ project['problem_statement'] }}</p>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <span style="color: #34d399; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; display: block; margin-bottom: 4px;">Proposed Solution:</span>
+                    <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.5;">{{ project['proposed_solution'] }}</p>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 20px; font-size: 0.85rem;">
+                    <a href="{{ project['github_url'] }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                        <i class="fa-brands fa-github"></i> Inspect Codebase
+                    </a>
+                    {% if project['demo_url'] %}
+                        <a href="{{ project['demo_url'] }}" target="_blank" rel="noopener" class="btn btn-outline-cyan btn-sm">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Live Demo
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- AI Project Analysis Breakdown -->
+            <div class="ai-analysis-box">
+                <div class="ai-header-badge">
+                    <i class="fa-solid fa-brain"></i> AI Objective Analysis Summary
+                </div>
+
+                <div class="ai-grid">
+                    <div class="ai-item-card">
+                        <div class="ai-item-title">Technical Complexity</div>
+                        <div class="ai-item-desc">{{ ai_analysis.get('technical_complexity') }}</div>
+                    </div>
+                    <div class="ai-item-card">
+                        <div class="ai-item-title">Innovation Indicators</div>
+                        <div class="ai-item-desc">{{ ai_analysis.get('innovation_indicators') }}</div>
+                    </div>
+                    <div class="ai-item-card">
+                        <div class="ai-item-title">Scalability Considerations</div>
+                        <div class="ai-item-desc">{{ ai_analysis.get('scalability_considerations') }}</div>
+                    </div>
+                    <div class="ai-item-card">
+                        <div class="ai-item-title">Industry Applications</div>
+                        <div class="ai-item-desc">{{ ai_analysis.get('possible_industry_applications') }}</div>
+                    </div>
+                </div>
+
+                <div class="ai-disclaimer" style="margin-top: 16px;">
+                    <i class="fa-solid fa-info-circle"></i>
+                    <strong>Supporting Information Only:</strong> AI metrics offer exploratory assessment. Company evaluators retain complete decision authority.
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Company Evaluation & Funding Decision Actions -->
+        <div>
+            <!-- Funding Actions Panel -->
+            <div class="glass-panel" style="padding: 28px; margin-bottom: 24px;">
+                <h3 style="font-size: 1.15rem; color: #22d3ee; margin-bottom: 16px;">
+                    <i class="fa-solid fa-hand-holding-dollar"></i> Funding & Pipeline Actions
+                </h3>
+
+                <!-- Active Status Banner -->
+                <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px;">
+                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); display: block;">Current Pipeline State</span>
+                    <strong style="font-size: 1.1rem; color: #fff;">
+                        {{ interest['status'] if interest else 'Not in Pipeline' }}
+                    </strong>
+                    {% if interest and interest['funding_date'] %}
+                        <div style="font-size: 0.75rem; color: #34d399; margin-top: 4px;">
+                            Approved Date: {{ interest['funding_date'][:10] }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- 1. Pipeline Quick Triggers: Shortlist & Show Interest -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+                    <form method="POST" action="{{ url_for('project_funding_action', project_id=project['id']) }}">
+                        <input type="hidden" name="action" value="interest">
+                        <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%;">
+                            <i class="fa-regular fa-heart"></i> Show Interest
+                        </button>
+                    </form>
+
+                    <form method="POST" action="{{ url_for('project_funding_action', project_id=project['id']) }}">
+                        <input type="hidden" name="action" value="shortlist">
+                        <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%;">
+                            <i class="fa-solid fa-bookmark"></i> Shortlist Project
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 2. Propose Funding Amount Form -->
+                <div style="padding: 16px; background: rgba(0,0,0,0.25); border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 16px;">
+                    <h4 style="font-size: 0.92rem; color: #22d3ee; margin-bottom: 10px;">
+                        <i class="fa-solid fa-comment-dollar"></i> Propose Funding Offer
+                    </h4>
+                    <form method="POST" action="{{ url_for('project_funding_action', project_id=project['id']) }}">
+                        <input type="hidden" name="action" value="propose_funding">
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label class="form-label" style="font-size: 0.8rem;">Proposed Amount ($ USD)</label>
+                            <input type="number" name="proposed_amount" class="form-control form-control-sm" 
+                                   value="{{ interest['proposed_amount'] if interest and interest['proposed_amount'] else project['expected_funding'] }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-outline-cyan btn-sm" style="width: 100%;">
+                            Submit Funding Proposal
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 3. Formally Approve Funding Form -->
+                <div style="padding: 16px; background: rgba(16, 185, 129, 0.08); border-radius: var(--radius-md); border: 1px solid rgba(16, 185, 129, 0.3); margin-bottom: 16px;">
+                    <h4 style="font-size: 0.92rem; color: #34d399; margin-bottom: 10px;">
+                        <i class="fa-solid fa-circle-check"></i> Formal Funding Approval
+                    </h4>
+                    <form method="POST" action="{{ url_for('project_funding_action', project_id=project['id']) }}">
+                        <input type="hidden" name="action" value="approve_funding">
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label class="form-label" style="font-size: 0.8rem;">Approved Tranche Amount ($ USD)</label>
+                            <input type="number" name="approved_amount" class="form-control form-control-sm" 
+                                   value="{{ interest['approved_amount'] if interest and interest['approved_amount'] else (interest['proposed_amount'] if interest and interest['proposed_amount'] else project['expected_funding']) }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-sm" style="width: 100%;">
+                            <i class="fa-solid fa-lock"></i> Authorize & Approve Funding
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 4. Reject Funding Button -->
+                <form method="POST" action="{{ url_for('project_funding_action', project_id=project['id']) }}" onsubmit="return confirm('Conclude evaluation and mark as rejected?');">
+                    <input type="hidden" name="action" value="reject_funding">
+                    <button type="submit" class="btn btn-danger btn-sm" style="width: 100%;">
+                        <i class="fa-solid fa-ban"></i> Reject / Pass on Funding
+                    </button>
+                </form>
+            </div>
+
+            <!-- Schedule Meeting & Request Info -->
+            <div class="glass-panel" style="padding: 24px; margin-bottom: 24px;">
+                <h3 style="font-size: 1.1rem; color: #fbbf24; margin-bottom: 14px;">
+                    <i class="fa-solid fa-video"></i> Request Meeting / Info
+                </h3>
+
+                <!-- Meeting Request -->
+                <form method="POST" action="{{ url_for('project_funding_action', project_id=project['id']) }}" style="margin-bottom: 18px;">
+                    <input type="hidden" name="action" value="request_meeting">
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label class="form-label" style="font-size: 0.8rem;">Meeting Proposal Details</label>
+                        <input type="text" name="meeting_details" class="form-control form-control-sm" 
+                               placeholder="e.g. Technical review call on Zoom, Friday 3PM" required>
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%;">
+                        <i class="fa-solid fa-calendar-plus"></i> Schedule Review Meeting
+                    </button>
+                </form>
+
+                <!-- Request Additional Info -->
+                <form method="POST" action="{{ url_for('project_funding_action', project_id=project['id']) }}">
+                    <input type="hidden" name="action" value="request_info">
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label class="form-label" style="font-size: 0.8rem;">Inquiry Query</label>
+                        <input type="text" name="info_query" class="form-control form-control-sm" 
+                               placeholder="e.g. Please provide power draw metrics and BOM breakdown" required>
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%;">
+                        <i class="fa-solid fa-clipboard-question"></i> Request Additional Info
+                    </button>
+                </form>
+            </div>
+
+            <!-- Company Private Evaluation Notes -->
+            <div class="glass-panel" style="padding: 24px;">
+                <h3 style="font-size: 1.1rem; color: #fff; margin-bottom: 12px;">
+                    <i class="fa-solid fa-note-sticky"></i> Company Private Evaluation Notes
+                </h3>
+                <form method="POST" action="{{ url_for('project_funding_action', project_id=project['id']) }}">
+                    <input type="hidden" name="action" value="update_notes">
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <textarea name="company_notes" class="form-control" rows="4" 
+                                  placeholder="Record internal investment thesis, risk assessment, or milestone terms...">{{ interest['company_notes'] if interest else '' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%;">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Internal Notes
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Company Project Explorer | Project After Life{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <div class="role-badge company" style="margin-bottom: 8px;">
+                <i class="fa-solid fa-compass"></i> Module 2: Company Project Explorer
+            </div>
+            <h1 style="font-size: 2.2rem;">Discover High-Potential Hackathon Innovations</h1>
+            <p style="color: var(--text-secondary); margin-top: 4px; font-size: 0.95rem;">
+                Browse approved student projects with complete technical breakdowns, GitHub codebases, and objective AI analysis reports.
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <a href="{{ url_for('company_funding') }}" class="btn btn-secondary btn-sm">
+                <i class="fa-solid fa-hand-holding-dollar"></i> My Funding Deals
+            </a>
+            <span class="badge badge-published" style="padding: 8px 14px; font-size: 0.85rem;">
+                {{ projects|length }} Projects Found
+            </span>
+        </div>
+    </div>
+
+    <!-- Search & Multi-Filter Bar -->
+    <div class="glass-panel" style="padding: 24px; margin-bottom: 32px;">
+        <form method="GET" action="{{ url_for('company_explorer') }}" id="filterForm">
+            <!-- Search Keyword -->
+            <div style="margin-bottom: 16px;">
+                <div style="position: relative;">
+                    <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 16px; top: 14px; color: var(--text-muted);"></i>
+                    <input type="text" name="q" class="form-control" style="padding-left: 42px;" 
+                           placeholder="Search by keywords, title, problem, solution, student, or college..." 
+                           value="{{ filters.get('q', '') }}">
+                </div>
+            </div>
+
+            <!-- Filters Grid -->
+            <div class="grid-4" style="gap: 14px;">
+                <!-- Technology Filter -->
+                <div>
+                    <label class="form-label" style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted);">Technology</label>
+                    <input type="text" name="technology" class="form-control form-control-sm" placeholder="e.g. PyTorch, ROS2, Solidity" 
+                           value="{{ filters.get('technology', '') }}">
+                </div>
+
+                <!-- Domain Filter -->
+                <div>
+                    <label class="form-label" style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted);">Domain</label>
+                    <select name="domain" class="form-control">
+                        <option value="">All Domains</option>
+                        {% for d in domains %}
+                            <option value="{{ d }}" {% if filters.get('domain') == d %}selected{% endif %}>{{ d }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Hackathon Filter -->
+                <div>
+                    <label class="form-label" style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted);">Hackathon</label>
+                    <select name="hackathon" class="form-control">
+                        <option value="">All Hackathons</option>
+                        {% for h in hackathons %}
+                            <option value="{{ h }}" {% if filters.get('hackathon') == h %}selected{% endif %}>{{ h }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- College Filter -->
+                <div>
+                    <label class="form-label" style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted);">College</label>
+                    <select name="college" class="form-control">
+                        <option value="">All Colleges</option>
+                        {% for c in colleges %}
+                            <option value="{{ c }}" {% if filters.get('college') == c %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Bottom Row: Funding Range & Status + Submit -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; gap: 14px; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-size: 0.82rem; color: var(--text-muted);">Max Budget ($):</label>
+                        <input type="number" name="funding_max" class="form-control" style="width: 120px; padding: 6px 10px;" 
+                               placeholder="e.g. 15000" value="{{ filters.get('funding_max', '') }}">
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-size: 0.82rem; color: var(--text-muted);">Status:</label>
+                        <select name="status" class="form-control" style="width: 150px; padding: 6px 10px;">
+                            <option value="">All Approved</option>
+                            <option value="Published" {% if filters.get('status') == 'Published' %}selected{% endif %}>Published</option>
+                            <option value="Approved" {% if filters.get('status') == 'Approved' %}selected{% endif %}>Approved</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <a href="{{ url_for('company_explorer') }}" class="btn btn-secondary btn-sm">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-filter"></i> Apply Filters
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Projects Grid -->
+    {% if projects %}
+        <div class="grid-3">
+            {% for p in projects %}
+                <div class="project-card">
+                    <div>
+                        <!-- Header & Badges -->
+                        <div class="project-card-header">
+                            <span class="badge badge-published">{{ p['domain'] }}</span>
+                            <div style="display: flex; gap: 6px; align-items: center;">
+                                <span class="badge 
+                                    {% if p['funding_status'] == 'Funding Approved' %}badge-funded
+                                    {% elif p['funding_status'] == 'Funding Proposed' %}badge-proposed
+                                    {% elif p['funding_status'] == 'Discussion' %}badge-shortlisted
+                                    {% else %}badge-approved{% endif %}">
+                                    {{ p['funding_status'] if p['funding_status'] != 'None' else p['submission_status'] }}
+                                </span>
+
+                                <button type="button" class="btn-save-project" data-project-id="{{ p['id'] }}" 
+                                        title="Bookmark / Save Project" 
+                                        style="background:none; border:none; cursor:pointer; font-size:1.15rem; color:{% if p['is_saved'] %}#fbbf24{% else %}var(--text-secondary){% endif %};">
+                                    {% if p['is_saved'] %}★{% else %}☆{% endif %}
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Title -->
+                        <h3 class="project-card-title">
+                            <a href="{{ url_for('project_detail', project_id=p['id']) }}">{{ p['project_title'] }}</a>
+                        </h3>
+
+                        <!-- Meta Info -->
+                        <div class="project-card-meta">
+                            <span><i class="fa-solid fa-user-graduate"></i> {{ p['student_name'] }}</span> •
+                            <span><i class="fa-solid fa-building-columns"></i> {{ p['college_name'] }}</span> •
+                            <span><i class="fa-solid fa-trophy"></i> {{ p['hackathon_name'] }}</span>
+                        </div>
+
+                        <!-- Card Body: Problem & Proposed Solution -->
+                        <div class="project-card-body">
+                            <div style="margin-bottom: 8px;">
+                                <strong style="font-size: 0.8rem; text-transform: uppercase; color: #f87171; display: block; margin-bottom: 2px;">
+                                    <i class="fa-solid fa-circle-exclamation"></i> Problem Statement:
+                                </strong>
+                                <p class="project-card-problem" style="margin-bottom: 8px;">
+                                    {{ p['problem_statement'] }}
+                                </p>
+                            </div>
+
+                            <div style="margin-bottom: 12px;">
+                                <strong style="font-size: 0.8rem; text-transform: uppercase; color: #34d399; display: block; margin-bottom: 2px;">
+                                    <i class="fa-solid fa-lightbulb"></i> Proposed Solution:
+                                </strong>
+                                <p style="font-size: 0.88rem; color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                    {{ p['proposed_solution'] }}
+                                </p>
+                            </div>
+
+                            <!-- Tech Stack -->
+                            <div class="tech-tag-list">
+                                {% for tech in p['technologies_used'].split(',')[:4] %}
+                                    <span class="tech-tag">{{ tech.strip() }}</span>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Links: GitHub & Demo -->
+                            <div style="margin-top: 14px; display: flex; gap: 14px; font-size: 0.82rem;">
+                                <a href="{{ p['github_url'] }}" target="_blank" rel="noopener" style="color: var(--secondary);">
+                                    <i class="fa-brands fa-github"></i> Repository
+                                </a>
+                                {% if p['demo_url'] %}
+                                    <a href="{{ p['demo_url'] }}" target="_blank" rel="noopener" style="color: #34d399;">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Live Demo
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Footer: Expected Funding & Action Buttons -->
+                    <div class="project-card-footer">
+                        <div class="funding-amount">
+                            ${{ "{:,.0f}".format(p['expected_funding']) }}
+                            <small>Expected Funding</small>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="{{ url_for('project_detail', project_id=p['id']) }}" class="btn btn-secondary btn-sm" title="View Full Details">
+                                <i class="fa-solid fa-eye"></i> Details
+                            </a>
+                            <a href="{{ url_for('project_evaluate', project_id=p['id']) }}" class="btn btn-primary btn-sm" title="Open Project Evaluation & Funding Panel">
+                                <i class="fa-solid fa-scale-balanced"></i> Evaluate
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="glass-panel" style="padding: 60px; text-align: center;">
+            <div style="font-size: 3rem; color: var(--text-muted); margin-bottom: 16px;">
+                <i class="fa-solid fa-filter-circle-xmark"></i>
+            </div>
+            <h3>No Projects Match Your Filter Criteria</h3>
+            <p style="color: var(--text-secondary); max-width: 480px; margin: 8px auto 24px;">
+                Try adjusting your search keywords, technology stack filters, or domain selection.
+            </p>
+            <a href="{{ url_for('company_explorer') }}" class="btn btn-secondary">
+                Reset All Filters
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

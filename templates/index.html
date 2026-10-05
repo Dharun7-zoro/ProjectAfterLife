@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Project After Life | Reviving Unfunded Hackathon Innovations{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-pill">
+            <i class="fa-solid fa-bolt"></i> Hackathon Innovations Deserve a Second Chance
+        </div>
+        <h1 class="hero-title">
+            Turn Unfunded Hackathon Projects Into <br>
+            <span class="gradient-text">Funded Commercial Ventures</span>
+        </h1>
+        <p class="hero-description">
+            Thousands of brilliant technical prototypes go unnoticed after 36-hour hackathons. 
+            <strong>Project After Life</strong> bridges student innovators directly with enterprise scout teams, 
+            providing AI-guided project analysis, transparent milestone funding, and structured development tracking.
+        </p>
+
+        <div class="hero-actions">
+            {% if current_user %}
+                {% if current_user['role'] == 'student' %}
+                    <a href="{{ url_for('project_submit') }}" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-plus-circle"></i> Submit Your Hackathon Project
+                    </a>
+                    <a href="{{ url_for('student_dashboard') }}" class="btn btn-secondary btn-lg">
+                        <i class="fa-solid fa-graduation-cap"></i> View Student Hub
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('company_explorer') }}" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-compass"></i> Discover Student Innovations
+                    </a>
+                    <a href="{{ url_for('company_funding') }}" class="btn btn-secondary btn-lg">
+                        <i class="fa-solid fa-hand-holding-dollar"></i> View Funding Dashboard
+                    </a>
+                {% endif %}
+            {% else %}
+                <a href="{{ url_for('demo_login', role='student') }}" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-user-graduate"></i> Explore as Student Innovator
+                </a>
+                <a href="{{ url_for('demo_login', role='company') }}" class="btn btn-secondary btn-lg">
+                    <i class="fa-solid fa-building"></i> Explore as Corporate Scout
+                </a>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Platform Impact Metrics -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-value primary">{{ total_published }}</div>
+            <div class="stat-label">Published Innovations</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value emerald">${{ "{:,.0f}".format(total_funded_val) }}</div>
+            <div class="stat-label">Committed Industry Capital</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value cyan">{{ total_companies }}</div>
+            <div class="stat-label">Active Corporate Scouts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value amber">{{ active_devs }}</div>
+            <div class="stat-label">Active Sprint Deployments</div>
+        </div>
+    </div>
+
+    <!-- The 4 Core Modules Workflow -->
+    <section style="margin: 60px 0;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h2 style="font-size: 2.2rem; margin-bottom: 12px;">How Project After Life Works</h2>
+            <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">
+                A unified ecosystem taking student prototypes from raw hackathon code to fully funded enterprise pilots.
+            </p>
+        </div>
+
+        <div class="grid-4">
+            <!-- Module 1 -->
+            <div class="glass-panel" style="padding: 24px;">
+                <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(99, 102, 241, 0.15); color: #818cf8; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 16px;">
+                    <i class="fa-solid fa-file-arrow-up"></i>
+                </div>
+                <span style="font-size: 0.75rem; font-weight: 700; color: #818cf8; text-transform: uppercase;">Module 1</span>
+                <h3 style="font-size: 1.15rem; margin: 6px 0 10px;">Student Submission</h3>
+                <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5;">
+                    Students input comprehensive problem statements, solutions, GitHub repos with real-time format validation, and documentation through a 4-stage review lifecycle.
+                </p>
+            </div>
+
+            <!-- Module 2 -->
+            <div class="glass-panel" style="padding: 24px;">
+                <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(6, 182, 212, 0.15); color: #22d3ee; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 16px;">
+                    <i class="fa-solid fa-microchip"></i>
+                </div>
+                <span style="font-size: 0.75rem; font-weight: 700; color: #22d3ee; text-transform: uppercase;">Module 2</span>
+                <h3 style="font-size: 1.15rem; margin: 6px 0 10px;">Explorer & AI Analysis</h3>
+                <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5;">
+                    Companies discover projects using deep multi-filters. Inbuilt AI provides objective analysis across 8 dimensions including technical complexity, scalability, and interview questions.
+                </p>
+            </div>
+
+            <!-- Module 3 -->
+            <div class="glass-panel" style="padding: 24px;">
+                <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(16, 185, 129, 0.15); color: #34d399; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 16px;">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+                <span style="font-size: 0.75rem; font-weight: 700; color: #34d399; text-transform: uppercase;">Module 3</span>
+                <h3 style="font-size: 1.15rem; margin: 6px 0 10px;">Selection & Funding</h3>
+                <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5;">
+                    Companies evaluate candidates, schedule meetings, propose tranches, and formalize funding with clear financial dashboards and stage-gated lifecycle controls.
+                </p>
+            </div>
+
+            <!-- Module 4 -->
+            <div class="glass-panel" style="padding: 24px;">
+                <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(245, 158, 11, 0.15); color: #fbbf24; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 16px;">
+                    <i class="fa-solid fa-bars-progress"></i>
+                </div>
+                <span style="font-size: 0.75rem; font-weight: 700; color: #fbbf24; text-transform: uppercase;">Module 4</span>
+                <h3 style="font-size: 1.15rem; margin: 6px 0 10px;">Progress Monitoring</h3>
+                <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5;">
+                    8-stage progression from Prototype to Final Deployment. Students deliver milestones, tasks, and GitHub builds; sponsors audit code and provide feedback.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Innovations Grid -->
+    <section style="margin: 60px 0;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px;">
+            <div>
+                <h2 style="font-size: 2rem;">Featured Student Innovations</h2>
+                <p style="color: var(--text-secondary); margin-top: 4px;">Top-rated hackathon prototypes actively seeking industry partners.</p>
+            </div>
+            <a href="{{ url_for('company_explorer') }}" class="btn btn-secondary btn-sm">
+                View All Projects <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="grid-3">
+            {% for project in featured_projects %}
+                <div class="project-card">
+                    <div>
+                        <div class="project-card-header">
+                            <span class="badge badge-published">{{ project['domain'] }}</span>
+                            <span class="badge {% if project['funding_status'] == 'Funding Approved' %}badge-funded{% elif project['funding_status'] == 'Funding Proposed' %}badge-proposed{% else %}badge-review{% endif %}">
+                                {{ project['funding_status'] if project['funding_status'] != 'None' else project['submission_status'] }}
+                            </span>
+                        </div>
+
+                        <h3 class="project-card-title">
+                            <a href="{{ url_for('project_detail', project_id=project['id']) }}">{{ project['project_title'] }}</a>
+                        </h3>
+
+                        <div class="project-card-meta">
+                            <span><i class="fa-solid fa-user-graduate"></i> {{ project['student_name'] }}</span> •
+                            <span><i class="fa-solid fa-building-columns"></i> {{ project['college_name'] }}</span> •
+                            <span><i class="fa-solid fa-trophy"></i> {{ project['hackathon_name'] }}</span>
+                        </div>
+
+                        <div class="project-card-body">
+                            <p class="project-card-problem">
+                                <strong>Problem:</strong> {{ project['problem_statement'] }}
+                            </p>
+                            
+                            <div class="tech-tag-list">
+                                {% for tech in project['technologies_used'].split(',')[:4] %}
+                                    <span class="tech-tag">{{ tech.strip() }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="project-card-footer">
+                        <div class="funding-amount">
+                            ${{ "{:,.0f}".format(project['expected_funding']) }}
+                            <small>Expected Funding</small>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="{{ url_for('project_detail', project_id=project['id']) }}" class="btn btn-secondary btn-sm">
+                                View Details
+                            </a>
+                            <a href="{{ url_for('project_evaluate', project_id=project['id']) }}" class="btn btn-primary btn-sm">
+                                Evaluate
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

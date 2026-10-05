@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard | Project After Life{% endblock %}
+
+{% block content %}
+<div class="container tabs-container">
+    <!-- Header with Quick Action -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <div class="role-badge student" style="margin-bottom: 8px;">
+                <i class="fa-solid fa-graduation-cap"></i> Student Innovator Hub
+            </div>
+            <h1 style="font-size: 2.2rem;">Welcome, {{ current_user['name'] }}</h1>
+            <p style="color: var(--text-secondary); margin-top: 4px;">
+                {{ current_user['organization'] }} • {{ current_user['department'] }}
+            </p>
+        </div>
+
+        <a href="{{ url_for('project_submit') }}" class="btn btn-primary btn-lg">
+            <i class="fa-solid fa-plus-circle"></i> Submit New Hackathon Project
+        </a>
+    </div>
+
+    <!-- Stats Cards Summary -->
+    <div class="stats-row" style="margin: 0 0 32px;">
+        <div class="stat-card">
+            <div class="stat-value primary">{{ projects|length }}</div>
+            <div class="stat-label">Submitted Projects</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value cyan">{{ company_interests|length }}</div>
+            <div class="stat-label">Company Interactions</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value emerald">
+                {% set total_approved = namespace(val=0) %}
+                {% for ci in company_interests %}
+                    {% if ci['status'] == 'Funding Approved' %}
+                        {% set total_approved.val = total_approved.val + ci['approved_amount'] %}
+                    {% endif %}
+                {% endfor %}
+                ${{ "{:,.0f}".format(total_approved.val) }}
+            </div>
+            <div class="stat-label">Approved Funding</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value amber">{{ active_dev_projects|length }}</div>
+            <div class="stat-label">In Active Development</div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs-nav">
+        <button type="button" class="tab-btn active" data-tab="tab-my-projects">
+            <i class="fa-solid fa-folder-open"></i> My Projects ({{ projects|length }})
+        </button>
+        <button type="button" class="tab-btn" data-tab="tab-company-interest">
+            <i class="fa-solid fa-handshake"></i> Company Interest & Funding ({{ company_interests|length }})
+        </button>
+        <button type="button" class="tab-btn" data-tab="tab-messages">
+            <i class="fa-solid fa-comments"></i> Company Messages ({{ messages|length }})
+        </button>
+        <button type="button" class="tab-btn" data-tab="tab-development">
+            <i class="fa-solid fa-laptop-code"></i> Development Tracking ({{ active_dev_projects|length }})
+        </button>
+    </div>
+
+    <!-- Tab 1: My Submitted Projects -->
+    <div id="tab-my-projects" class="tab-content active">
+        {% if projects %}
+            <div class="grid-2">
+                {% for p in projects %}
+                    <div class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <!-- Header & Status Pill -->
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 10px;">
+                                <span class="badge badge-published">{{ p['domain'] }}</span>
+                                <div style="display: flex; gap: 6px;">
+                                    <span class="badge 
+                                        {% if p['submission_status'] == 'Published' %}badge-published
+                                        {% elif p['submission_status'] == 'Approved' %}badge-approved
+                                        {% elif p['submission_status'] == 'Under Review' %}badge-review
+                                        {% else %}badge-submitted{% endif %}">
+                                        {{ p['submission_status'] }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <h3 style="font-size: 1.25rem; margin-bottom: 6px;">
+                                <a href="{{ url_for('project_detail', project_id=p['id']) }}">{{ p['project_title'] }}</a>
+                            </h3>
+
+                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+                                <i class="fa-solid fa-trophy"></i> Built for: <strong>{{ p['hackathon_name'] }}</strong> •
+                                <span><i class="fa-solid fa-calendar"></i> {{ p['created_at'][:10] }}</span>
+                            </div>
+
+                            <!-- Submission Lifecycle Tracker -->
+                            <div style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 16px;">
+                                <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; font-weight: 700;">
+                                    Submission Verification Lifecycle:
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem;">
+                                    <span style="color: {% if p['submission_status'] in ['Submitted', 'Under Review', 'Approved', 'Published'] %}#34d399; font-weight: 700;{% else %}var(--text-muted);{% endif %}">
+                                        <i class="fa-solid fa-circle-check"></i> Submitted
+                                    </span>
+                                    <i class="fa-solid fa-arrow-right" style="color: var(--text-muted); font-size: 0.7rem;"></i>
+                                    <span style="color: {% if p['submission_status'] in ['Under Review', 'Approved', 'Published'] %}#fbbf24; font-weight: 700;{% else %}var(--text-muted);{% endif %}">
+                                        <i class="fa-solid {% if p['submission_status'] in ['Under Review', 'Approved', 'Published'] %}fa-circle-check{% else %}fa-circle{% endif %}"></i> Under Review
+                                    </span>
+                                    <i class="fa-solid fa-arrow-right" style="color: var(--text-muted); font-size: 0.7rem;"></i>
+                                    <span style="color: {% if p['submission_status'] in ['Approved', 'Published'] %}#34d399; font-weight: 700;{% else %}var(--text-muted);{% endif %}">
+                                        <i class="fa-solid {% if p['submission_status'] in ['Approved', 'Published'] %}fa-circle-check{% else %}fa-circle{% endif %}"></i> Approved
+                                    </span>
+                                    <i class="fa-solid fa-arrow-right" style="color: var(--text-muted); font-size: 0.7rem;"></i>
+                                    <span style="color: {% if p['submission_status'] == 'Published' %}#a5b4fc; font-weight: 700;{% else %}var(--text-muted);{% endif %}">
+                                        <i class="fa-solid {% if p['submission_status'] == 'Published' %}fa-circle-check{% else %}fa-circle{% endif %}"></i> Published
+                                    </span>
+                                </div>
+                            </div>
+
+                            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px;">
+                                {{ p['problem_statement'][:140] }}...
+                            </p>
+
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">
+                                <i class="fa-brands fa-github" style="color: #fff;"></i> 
+                                <a href="{{ p['github_url'] }}" target="_blank" rel="noopener" style="color: var(--secondary);">{{ p['github_url'] }}</a>
+                            </div>
+
+                            <div class="tech-tag-list" style="margin-bottom: 16px;">
+                                {% for tech in p['technologies_used'].split(',') %}
+                                    <span class="tech-tag">{{ tech.strip() }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Footer Actions -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 12px;">
+                            <div>
+                                <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">Expected Funding</span>
+                                <span style="font-size: 1.15rem; font-weight: 700; color: #34d399;">${{ "{:,.0f}".format(p['expected_funding']) }}</span>
+                            </div>
+
+                            <div style="display: flex; gap: 8px;">
+                                <a href="{{ url_for('project_edit', project_id=p['id']) }}" class="btn btn-secondary btn-sm" title="Edit Project Details">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </a>
+                                <a href="{{ url_for('project_detail', project_id=p['id']) }}" class="btn btn-primary btn-sm">
+                                    <i class="fa-solid fa-eye"></i> View Detail
+                                </a>
+
+                                <!-- Quick Review Simulator to advance status -->
+                                {% if p['submission_status'] != 'Published' %}
+                                    <form method="POST" action="{{ url_for('update_submission_status', project_id=p['id']) }}" style="display:inline;">
+                                        <input type="hidden" name="status" value="{% if p['submission_status'] == 'Submitted' %}Under Review{% elif p['submission_status'] == 'Under Review' %}Approved{% else %}Published{% endif %}">
+                                        <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;" title="Simulate reviewer approving status">
+                                            Advance →
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-panel" style="padding: 48px; text-align: center;">
+                <div style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 16px;">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+                <h3>No Projects Submitted Yet</h3>
+                <p style="color: var(--text-secondary); max-width: 480px; margin: 8px auto 24px;">
+                    Submit your unfunded hackathon project today to put it in front of industry venture scouts and engineering leaders!
+                </p>
+                <a href="{{ url_for('project_submit') }}" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-plus-circle"></i> Submit Your First Project
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Tab 2: Company Interest & Funding Offers -->
+    <div id="tab-company-interest" class="tab-content">
+        {% if company_interests %}
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Company / Partner</th>
+                            <th>Project</th>
+                            <th>Lifecycle Status</th>
+                            <th>Proposed Amount</th>
+                            <th>Approved Amount</th>
+                            <th>Meeting / Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ci in company_interests %}
+                            <tr>
+                                <td>
+                                    <strong>{{ ci['company_name'] }}</strong>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted);">{{ ci['company_org'] }}</div>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('project_detail', project_id=ci['project_id']) }}" style="font-weight: 600;">
+                                        {{ ci['project_title'] }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if ci['status'] == 'Funding Approved' %}badge-funded
+                                        {% elif ci['status'] == 'Funding Proposed' %}badge-proposed
+                                        {% elif ci['status'] == 'Shortlisted' %}badge-shortlisted
+                                        {% elif ci['status'] == 'Discussion' %}badge-review
+                                        {% elif ci['status'] == 'Rejected' %}badge-rejected
+                                        {% else %}badge-interest{% endif %}">
+                                        {{ ci['status'] }}
+                                    </span>
+                                </td>
+                                <td style="font-weight: 600; color: #22d3ee;">
+                                    ${{ "{:,.2f}".format(ci['proposed_amount']) if ci['proposed_amount'] else '—' }}
+                                </td>
+                                <td style="font-weight: 700; color: #34d399;">
+                                    ${{ "{:,.2f}".format(ci['approved_amount']) if ci['approved_amount'] else '—' }}
+                                </td>
+                                <td style="max-width: 250px;">
+                                    {% if ci['meeting_requested'] %}
+                                        <div style="font-size: 0.78rem; color: #fbbf24; margin-bottom: 4px;">
+                                            <i class="fa-solid fa-video"></i> {{ ci['meeting_details'] }}
+                                        </div>
+                                    {% endif %}
+                                    {% if ci['company_notes'] %}
+                                        <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.4;">
+                                            {{ ci['company_notes'][:100] }}...
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if ci['status'] == 'Funding Approved' %}
+                                        <a href="{{ url_for('project_development', project_id=ci['project_id']) }}" class="btn btn-success btn-sm">
+                                            <i class="fa-solid fa-code"></i> Dev Dashboard
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ url_for('project_detail', project_id=ci['project_id']) }}" class="btn btn-secondary btn-sm">
+                                            View Details
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="glass-panel" style="padding: 40px; text-align: center;">
+                <p style="color: var(--text-secondary);">No active company funding proposals yet. As companies explore approved projects, inquiries and funding offers will appear here.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Tab 3: Company Messages -->
+    <div id="tab-messages" class="tab-content">
+        {% if messages %}
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                {% for m in messages %}
+                    <div class="glass-panel" style="padding: 18px 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div>
+                                <strong style="color: #fff;">{{ m['sender_user_name'] }}</strong>
+                                <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 8px;">({{ m['sender_org'] }})</span>
+                                <span class="badge badge-published" style="font-size: 0.68rem; margin-left: 8px;">RE: {{ m['project_title'] }}</span>
+                            </div>
+                            <span style="font-size: 0.78rem; color: var(--text-muted);">{{ m['created_at'][:16] }}</span>
+                        </div>
+                        <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
+                            {{ m['message'] }}
+                        </p>
+                        <div>
+                            <a href="{{ url_for('project_detail', project_id=m['project_id']) }}#discussion" class="btn btn-secondary btn-sm">
+                                <i class="fa-solid fa-reply"></i> Reply in Project Thread
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-panel" style="padding: 40px; text-align: center;">
+                <p style="color: var(--text-secondary);">No incoming company messages.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Tab 4: Active Development Tracking -->
+    <div id="tab-development" class="tab-content">
+        {% if active_dev_projects %}
+            <div class="grid-2">
+                {% for ad in active_dev_projects %}
+                    <div class="glass-panel" style="padding: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <span class="badge badge-funded">Stage: {{ ad['development_stage'] }}</span>
+                            <span style="font-size: 1.1rem; font-weight: 700; color: #34d399;">{{ ad['progress_percentage'] }}% Complete</span>
+                        </div>
+
+                        <h3 style="font-size: 1.2rem; margin-bottom: 8px;">{{ ad['project_title'] }}</h3>
+                        
+                        <div class="progress-bar-container" style="margin-bottom: 16px;">
+                            <div class="progress-bar-fill" style="width: {{ ad['progress_percentage'] }}%;"></div>
+                        </div>
+
+                        <div style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 16px;">
+                            Milestones Completed: <strong>{{ ad['approved_milestones'] or 0 }} / {{ ad['total_milestones'] or 0 }}</strong>
+                        </div>
+
+                        <a href="{{ url_for('project_development', project_id=ad['id']) }}" class="btn btn-primary" style="width: 100%;">
+                            <i class="fa-solid fa-bars-progress"></i> Open Full Development Dashboard
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-panel" style="padding: 40px; text-align: center;">
+                <p style="color: var(--text-secondary);">
+                    No projects are currently in the funded development phase. Once a company approves funding for your project, the full milestone and task tracking dashboard will activate!
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

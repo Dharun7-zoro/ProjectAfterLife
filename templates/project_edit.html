@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Project: {{ project['project_title'] }} | Project After Life{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 960px; margin: 20px auto 60px;">
+    <!-- Breadcrumb -->
+    <div style="margin-bottom: 20px; font-size: 0.88rem; color: var(--text-muted);">
+        <a href="{{ url_for('student_dashboard') }}">Student Hub</a> &gt; <span>Edit Project</span>
+    </div>
+
+    <div class="glass-panel" style="padding: 40px;">
+        <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 24px; margin-bottom: 30px;">
+            <div class="role-badge student" style="margin-bottom: 8px;">
+                <i class="fa-solid fa-pen-to-square"></i> Project Editor
+            </div>
+            <h1 style="font-size: 2.1rem;">Edit: {{ project['project_title'] }}</h1>
+            <p style="color: var(--text-secondary); margin-top: 6px; font-size: 0.95rem;">
+                Keep your project details, GitHub commits, documentation links, and funding requirements up-to-date.
+            </p>
+        </div>
+
+        <form method="POST" action="{{ url_for('project_edit', project_id=project['id']) }}">
+            <!-- Section 1: Team & Academic Identity -->
+            <h3 style="font-size: 1.15rem; color: #818cf8; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-users"></i> 1. Innovator & Academic Details
+            </h3>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="student_name">Lead Student Name *</label>
+                    <input type="text" id="student_name" name="student_name" class="form-control" 
+                           value="{{ project['student_name'] }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="college_name">College / University *</label>
+                    <input type="text" id="college_name" name="college_name" class="form-control" 
+                           value="{{ project['college_name'] }}" required>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="department">Department / Branch *</label>
+                    <input type="text" id="department" name="department" class="form-control" 
+                           value="{{ project['department'] }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="team_members">Team Members & Roles</label>
+                    <input type="text" id="team_members" name="team_members" class="form-control" 
+                           value="{{ project['team_members'] }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="hackathon_name">Origin Hackathon Name *</label>
+                <input type="text" id="hackathon_name" name="hackathon_name" class="form-control" 
+                       value="{{ project['hackathon_name'] }}" required>
+            </div>
+
+            <!-- Section 2: Technical Project Formulation -->
+            <h3 style="font-size: 1.15rem; color: #22d3ee; margin: 36px 0 18px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-lightbulb"></i> 2. Project Architecture & Formulation
+            </h3>
+
+            <div class="form-group">
+                <label class="form-label" for="project_title">Project Title *</label>
+                <input type="text" id="project_title" name="project_title" class="form-control" 
+                       value="{{ project['project_title'] }}" required>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="domain">Project Domain *</label>
+                    <select id="domain" name="domain" class="form-control" required>
+                        <option value="Healthcare & MedTech" {% if project['domain'] == 'Healthcare & MedTech' %}selected{% endif %}>Healthcare & MedTech</option>
+                        <option value="CleanTech & Sustainability" {% if project['domain'] == 'CleanTech & Sustainability' %}selected{% endif %}>CleanTech & Sustainability</option>
+                        <option value="AI & Machine Learning" {% if project['domain'] == 'AI & Machine Learning' %}selected{% endif %}>AI & Machine Learning</option>
+                        <option value="Web3 & Cybersecurity" {% if project['domain'] == 'Web3 & Cybersecurity' %}selected{% endif %}>Web3 & Cybersecurity</option>
+                        <option value="AgriTech & AI" {% if project['domain'] == 'AgriTech & AI' %}selected{% endif %}>AgriTech & AI</option>
+                        <option value="Robotics & IoT" {% if project['domain'] == 'Robotics & IoT' %}selected{% endif %}>Robotics & IoT</option>
+                        <option value="EdTech & Accessibility" {% if project['domain'] == 'EdTech & Accessibility' %}selected{% endif %}>EdTech & Accessibility</option>
+                        <option value="FinTech & Commerce" {% if project['domain'] == 'FinTech & Commerce' %}selected{% endif %}>FinTech & Commerce</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="technologies_used">Technologies Used *</label>
+                    <input type="text" id="technologies_used" name="technologies_used" class="form-control" 
+                           value="{{ project['technologies_used'] }}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="problem_statement">Problem Statement *</label>
+                <textarea id="problem_statement" name="problem_statement" class="form-control" rows="3" required>{{ project['problem_statement'] }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="proposed_solution">Proposed Solution *</label>
+                <textarea id="proposed_solution" name="proposed_solution" class="form-control" rows="3" required>{{ project['proposed_solution'] }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="project_description">Detailed Project Description *</label>
+                <textarea id="project_description" name="project_description" class="form-control" rows="5" required>{{ project['project_description'] }}</textarea>
+            </div>
+
+            <!-- Section 3: Repositories & Links -->
+            <h3 style="font-size: 1.15rem; color: #34d399; margin: 36px 0 18px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-code"></i> 3. Repositories, Documentation & Assets
+            </h3>
+
+            <div class="form-group">
+                <label class="form-label" for="github_url">
+                    <i class="fa-brands fa-github"></i> GitHub Repository Link * (Validated)
+                </label>
+                <input type="url" id="github_url" name="github_url" class="form-control" 
+                       value="{{ project['github_url'] }}" required>
+                <div id="github_feedback" class="form-hint">
+                    Required format: https://github.com/username/repository
+                </div>
+            </div>
+
+            <div class="grid-3">
+                <div class="form-group">
+                    <label class="form-label" for="demo_url">Live Demo Link</label>
+                    <input type="url" id="demo_url" name="demo_url" class="form-control" 
+                           value="{{ project['demo_url'] or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="documentation_url">Project Documentation Link</label>
+                    <input type="url" id="documentation_url" name="documentation_url" class="form-control" 
+                           value="{{ project['documentation_url'] or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="presentation_url">Presentation Deck Link</label>
+                    <input type="url" id="presentation_url" name="presentation_url" class="form-control" 
+                           value="{{ project['presentation_url'] or '' }}">
+                </div>
+            </div>
+
+            <!-- Section 4: Funding & Contact -->
+            <h3 style="font-size: 1.15rem; color: #fbbf24; margin: 36px 0 18px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-hand-holding-dollar"></i> 4. Funding Request & Student Contact
+            </h3>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="expected_funding">Expected Funding Amount ($ USD) *</label>
+                    <input type="number" id="expected_funding" name="expected_funding" step="100" class="form-control" 
+                           value="{{ project['expected_funding'] }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="contact_details">Student Contact Details *</label>
+                    <input type="text" id="contact_details" name="contact_details" class="form-control" 
+                           value="{{ project['contact_details'] }}" required>
+                </div>
+            </div>
+
+            <div style="margin-top: 36px; display: flex; justify-content: flex-end; gap: 14px;">
+                <a href="{{ url_for('student_dashboard') }}" class="btn btn-secondary btn-lg">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Changes & Re-Analyze
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In | Project After Life{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 480px; margin: 40px auto;">
+    <div class="glass-panel" style="padding: 36px 32px;">
+        <div style="text-align: center; margin-bottom: 28px;">
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; margin-bottom: 12px; box-shadow: 0 0 20px var(--primary-glow);">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h2 style="font-size: 1.6rem;">Sign In to Your Account</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px;">
+                Access your Student Hub or Company Scouting Dashboard
+            </p>
+        </div>
+
+        <!-- Quick Demo Credentials Box -->
+        <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 24px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #a5b4fc; text-transform: uppercase; margin-bottom: 8px;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Instant One-Click Demo Access
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <a href="{{ url_for('demo_login', role='student') }}" class="btn btn-secondary btn-sm" style="flex: 1; font-size: 0.8rem;">
+                    <i class="fa-solid fa-user-graduate"></i> Student Demo
+                </a>
+                <a href="{{ url_for('demo_login', role='company') }}" class="btn btn-secondary btn-sm" style="flex: 1; font-size: 0.8rem;">
+                    <i class="fa-solid fa-building"></i> Company Demo
+                </a>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="name@college.edu or name@company.com" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 12px;">
+                <i class="fa-solid fa-right-to-bracket"></i> Sign In
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 24px; font-size: 0.9rem; color: var(--text-secondary);">
+            Don't have an account yet? 
+            <a href="{{ url_for('register') }}" style="color: var(--secondary); font-weight: 600;">Create an Account</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

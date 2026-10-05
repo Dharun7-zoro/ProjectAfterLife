@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+
+{% block title %}Development & Sprint Tracking: {{ project['project_title'] }} | Project After Life{% endblock %}
+
+{% block content %}
+<div class="container tabs-container" data-current-project-id="{{ project['id'] }}">
+    <!-- Breadcrumb & Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+        <div style="font-size: 0.88rem; color: var(--text-muted);">
+            <a href="{{ url_for('company_explorer') }}">Projects</a> &gt;
+            <a href="{{ url_for('project_detail', project_id=project['id']) }}">{{ project['project_title'] }}</a> &gt;
+            <span>Development & Sprint Dashboard</span>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <a href="{{ project['github_url'] }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                <i class="fa-brands fa-github"></i> Active GitHub Repo
+            </a>
+            <a href="{{ url_for('project_detail', project_id=project['id']) }}" class="btn btn-secondary btn-sm">
+                <i class="fa-solid fa-arrow-left"></i> Project Overview
+            </a>
+        </div>
+    </div>
+
+    <!-- Header Panel with Stage Lifecycle & Progress Bar -->
+    <div class="glass-panel" style="padding: 32px; margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <div class="role-badge {% if is_owner %}student{% else %}company{% endif %}" style="margin-bottom: 8px;">
+                    <i class="fa-solid fa-laptop-code"></i> Module 4: Development & Progress Monitoring
+                </div>
+                <h1 style="font-size: 2.1rem; margin-bottom: 6px;">{{ project['project_title'] }}</h1>
+                <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                    Lead Innovator: <strong>{{ project['student_name'] }}</strong> ({{ project['student_college'] }})
+                </p>
+            </div>
+
+            <!-- Dynamic Progress Meter -->
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 18px 24px; text-align: right; min-width: 220px;">
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block;">
+                    Overall Sprint Completion
+                </span>
+                <div style="font-size: 2.4rem; font-weight: 800; color: #34d399; line-height: 1.1;">
+                    {{ project['progress_percentage'] }}%
+                </div>
+                <span class="badge badge-published" style="margin-top: 6px;">Stage: {{ project['development_stage'] }}</span>
+            </div>
+        </div>
+
+        <!-- Animated Progress Bar -->
+        <div style="margin: 24px 0 10px;">
+            <div class="progress-bar-container" style="height: 12px;">
+                <div class="progress-bar-fill" style="width: {{ project['progress_percentage'] }}%;"></div>
+            </div>
+        </div>
+
+        <!-- Lifecycle Stage Stepper: Funding Approved -> Planning -> Prototype -> Development -> Testing -> Company Review -> Final Product -> Deployment -->
+        <div style="margin-top: 24px;">
+            <div style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; color: #a5b4fc; margin-bottom: 8px;">
+                Development Lifecycle Progression:
+            </div>
+
+            {% set cur_stage_idx = lifecycle_stages.index(project['development_stage']) if project['development_stage'] in lifecycle_stages else 0 %}
+            
+            <div class="lifecycle-tracker">
+                {% for stage in lifecycle_stages %}
+                    {% set idx = loop.index0 %}
+                    <div class="step-node {% if cur_stage_idx > idx %}completed{% elif cur_stage_idx == idx %}current{% endif %}">
+                        <div class="step-circle">
+                            {% if cur_stage_idx > idx %}
+                                <i class="fa-solid fa-check"></i>
+                            {% elif cur_stage_idx == idx %}
+                                <i class="fa-solid fa-code-commit"></i>
+                            {% else %}
+                                {{ loop.index }}
+                            {% endif %}
+                        </div>
+                        <div class="step-label">{{ stage }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Stage Advance Control -->
+            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 14px;">
+                <form method="POST" action="{{ url_for('project_stage_advance', project_id=project['id']) }}" style="display: flex; align-items: center; gap: 8px;">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Transition Stage:</label>
+                    <select name="stage" class="form-control form-control-sm" style="width: 170px;">
+                        {% for s in lifecycle_stages %}
+                            <option value="{{ s }}" {% if project['development_stage'] == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-secondary btn-sm">
+                        Update Stage <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs-nav">
+        <button type="button" class="tab-btn active" data-tab="tab-milestones">
+            <i class="fa-solid fa-flag-checkered"></i> Milestones & Tasks ({{ milestones|length }})
+        </button>
+        <button type="button" class="tab-btn" data-tab="tab-builds">
+            <i class="fa-solid fa-code-branch"></i> Builds, Versions & Reports ({{ updates|length }})
+        </button>
+        <button type="button" class="tab-btn" data-tab="tab-feedback">
+            <i class="fa-solid fa-comments"></i> Company Review & Feedback
+        </button>
+    </div>
+
+    <!-- Tab 1: Milestones & Tasks -->
+    <div id="tab-milestones" class="tab-content active">
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+            <!-- Left: Milestone Cards List -->
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="font-size: 1.2rem; color: #fff;">
+                        <i class="fa-solid fa-list-check"></i> Project Milestones & Verification
+                    </h3>
+                </div>
+
+                {% if milestones %}
+                    {% for m in milestones %}
+                        <div class="milestone-card">
+                            <div class="milestone-header">
+                                <div>
+                                    <span class="badge 
+                                        {% if m['status'] == 'Approved by Company' %}badge-funded
+                                        {% elif m['status'] == 'Completed' %}badge-published
+                                        {% elif m['status'] == 'In Progress' %}badge-review
+                                        {% elif m['status'] == 'Changes Requested' %}badge-rejected
+                                        {% else %}badge-submitted{% endif %}">
+                                        {{ m['status'] }}
+                                    </span>
+                                    <span style="font-size: 0.78rem; color: var(--text-muted); margin-left: 8px;">
+                                        Stage: {{ m['stage'] }} • Target: {{ m['target_date'] or 'TBD' }}
+                                    </span>
+                                </div>
+
+                                <div style="font-size: 0.82rem; color: var(--text-secondary);">
+                                    Tasks: <strong>{{ m['completed_tasks'] }} / {{ m['total_tasks'] }}</strong>
+                                </div>
+                            </div>
+
+                            <h4 style="font-size: 1.1rem; color: #fff; margin-bottom: 6px;">{{ m['title'] }}</h4>
+                            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 14px;">
+                                {{ m['description'] }}
+                            </p>
+
+                            <!-- Company Feedback Callout if present -->
+                            {% if m['company_feedback'] %}
+                                <div style="background: rgba(99, 102, 241, 0.1); border-left: 3px solid var(--primary); padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 0.85rem; color: #cbd5e1;">
+                                    <strong><i class="fa-solid fa-comment-dots"></i> Sponsor Feedback:</strong> {{ m['company_feedback'] }}
+                                </div>
+                            {% endif %}
+
+                            <!-- Tasks Checklist -->
+                            <div style="margin-bottom: 14px;">
+                                <strong style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">
+                                    Sub-tasks Checklist:
+                                </strong>
+                                {% set m_tasks = [] %}
+                                {% for t in tasks %}
+                                    {% if t['milestone_id'] == m['id'] %}
+                                        <div class="task-item {% if t['is_completed'] %}completed{% endif %}">
+                                            <input type="checkbox" class="task-checkbox" data-task-id="{{ t['id'] }}" {% if t['is_completed'] %}checked{% endif %}>
+                                            <span style="flex: 1;">{{ t['title'] }}</span>
+                                            {% if t['assigned_to'] %}
+                                                <small style="color: var(--text-muted); font-size: 0.75rem;">👤 {{ t['assigned_to'] }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            <!-- Add Task Inline Form -->
+                            <form method="POST" action="{{ url_for('task_create') }}" style="display: flex; gap: 8px; margin-bottom: 14px;">
+                                <input type="hidden" name="milestone_id" value="{{ m['id'] }}">
+                                <input type="hidden" name="project_id" value="{{ project['id'] }}">
+                                <input type="text" name="title" class="form-control form-control-sm" placeholder="+ Add a task..." required>
+                                <input type="text" name="assigned_to" class="form-control form-control-sm" style="width: 140px;" placeholder="Assignee">
+                                <button type="submit" class="btn btn-secondary btn-sm">Add</button>
+                            </form>
+
+                            <!-- Milestone Action Triggers -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 10px;">
+                                <div>
+                                    <!-- Student Submit Completed -->
+                                    {% if m['status'] in ['Pending', 'In Progress', 'Changes Requested'] %}
+                                        <form method="POST" action="{{ url_for('milestone_action', milestone_id=m['id']) }}" style="display: inline;">
+                                            <input type="hidden" name="action" value="submit_completed">
+                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                <i class="fa-solid fa-circle-check"></i> Submit Milestone for Review
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Company Review Actions: Approve / Request Changes -->
+                                {% if session.get('role') in ['company', 'admin'] %}
+                                    <div style="display: flex; gap: 8px;">
+                                        <!-- Request Changes Modal/Prompt -->
+                                        <form method="POST" action="{{ url_for('milestone_action', milestone_id=m['id']) }}" style="display: flex; gap: 6px;">
+                                            <input type="hidden" name="action" value="request_changes">
+                                            <input type="text" name="feedback" class="form-control form-control-sm" placeholder="Changes needed..." required style="width: 160px;">
+                                            <button type="submit" class="btn btn-secondary btn-sm" title="Request Changes">
+                                                <i class="fa-solid fa-triangle-exclamation" style="color: #fbbf24;"></i> Request Changes
+                                            </button>
+                                        </form>
+
+                                        <!-- Approve Milestone -->
+                                        <form method="POST" action="{{ url_for('milestone_action', milestone_id=m['id']) }}" style="display: inline;">
+                                            <input type="hidden" name="action" value="approve">
+                                            <input type="hidden" name="feedback" value="Milestone deliverables approved and verified by company reviewer.">
+                                            <button type="submit" class="btn btn-success btn-sm">
+                                                <i class="fa-solid fa-check-double"></i> Approve Milestone
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="glass-panel" style="padding: 40px; text-align: center;">
+                        <p style="color: var(--text-secondary);">No milestones created yet. Create your first milestone using the form on the right.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Right: Create Milestone Form -->
+            <div>
+                <div class="glass-panel" style="padding: 24px; position: sticky; top: 90px;">
+                    <h3 style="font-size: 1.15rem; color: #818cf8; margin-bottom: 16px;">
+                        <i class="fa-solid fa-plus-circle"></i> Create New Milestone
+                    </h3>
+
+                    <form method="POST" action="{{ url_for('milestone_create') }}">
+                        <input type="hidden" name="project_id" value="{{ project['id'] }}">
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 0.85rem;">Milestone Title *</label>
+                            <input type="text" name="title" class="form-control" placeholder="e.g. Milestone 3: BLE GATT Telemetry Sync" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 0.85rem;">Target Stage</label>
+                            <select name="stage" class="form-control">
+                                {% for s in lifecycle_stages %}
+                                    <option value="{{ s }}">{{ s }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 0.85rem;">Target Delivery Date</label>
+                            <input type="date" name="target_date" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 0.85rem;">Description & Deliverables</label>
+                            <textarea name="description" class="form-control" rows="3" placeholder="Outline tangible outcomes (e.g. firmware flash, noise reduction tests)..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            <i class="fa-solid fa-plus"></i> Create Milestone
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Builds, Versions & Reports -->
+    <div id="tab-builds" class="tab-content">
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+            <!-- Left: Published Builds & Reports History -->
+            <div>
+                <h3 style="font-size: 1.2rem; color: #fff; margin-bottom: 20px;">
+                    <i class="fa-solid fa-code-fork"></i> Sprint Releases & Technical Reports
+                </h3>
+
+                {% if updates %}
+                    <div style="display: flex; flex-direction: column; gap: 18px;">
+                        {% for u in updates %}
+                            <div class="glass-panel" style="padding: 24px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span class="badge badge-published" style="font-size: 0.85rem;">{{ u['version_tag'] }}</span>
+                                        {% if u['github_commit_or_branch'] %}
+                                            <code style="font-size: 0.78rem; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; color: #38bdf8;">
+                                                <i class="fa-solid fa-code-commit"></i> {{ u['github_commit_or_branch'] }}
+                                            </code>
+                                        {% endif %}
+                                    </div>
+                                    <span style="font-size: 0.78rem; color: var(--text-muted);">{{ u['created_at'][:16] }}</span>
+                                </div>
+
+                                <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px;">
+                                    {{ u['report_text'] }}
+                                </p>
+
+                                {% if u['demo_video_url'] %}
+                                    <div style="margin-bottom: 12px;">
+                                        <a href="{{ u['demo_video_url'] }}" target="_blank" rel="noopener" class="btn btn-outline-cyan btn-sm">
+                                            <i class="fa-solid fa-circle-play"></i> Watch Sprint Demo Video
+                                        </a>
+                                    </div>
+                                {% endif %}
+
+                                <!-- Company Feedback if any -->
+                                {% if u['company_feedback'] %}
+                                    <div style="background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.85rem; color: #cbd5e1;">
+                                        <strong><i class="fa-solid fa-comments"></i> Company Reviewer:</strong> {{ u['company_feedback'] }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="glass-panel" style="padding: 40px; text-align: center;">
+                        <p style="color: var(--text-secondary);">No sprint releases or technical reports posted yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Right: Upload Version & Progress Report Form -->
+            <div>
+                <div class="glass-panel" style="padding: 24px; position: sticky; top: 90px;">
+                    <h3 style="font-size: 1.15rem; color: #22d3ee; margin-bottom: 16px;">
+                        <i class="fa-solid fa-upload"></i> Publish Sprint Build
+                    </h3>
+
+                    <form method="POST" action="{{ url_for('progress_upload') }}">
+                        <input type="hidden" name="project_id" value="{{ project['id'] }}">
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 0.85rem;">Version Tag *</label>
+                            <input type="text" name="version_tag" class="form-control" placeholder="e.g. v0.3.1-alpha or Sprint 2 Release" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 0.85rem;">GitHub Commit / Branch</label>
+                            <input type="text" name="github_commit_or_branch" class="form-control" placeholder="e.g. main (commit #9a4f2b) or feature/quantization">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 0.85rem;">Progress Report Summary *</label>
+                            <textarea name="report_text" class="form-control" rows="4" placeholder="Detail milestone achievements, benchmark metrics, and next steps..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 0.85rem;">Demo Video Link (URL)</label>
+                            <input type="url" name="demo_video_url" class="form-control" placeholder="https://youtu.be/... or Loom">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 0.85rem;">Screenshot URL</label>
+                            <input type="url" name="screenshot_url" class="form-control" placeholder="https://images.unsplash.com/...">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Publish Sprint Report
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 3: Company Review & Feedback -->
+    <div id="tab-feedback" class="tab-content">
+        <div class="glass-panel" style="padding: 32px;">
+            <h3 style="font-size: 1.25rem; color: #fff; margin-bottom: 12px;">
+                <i class="fa-solid fa-handshake-angle"></i> Sponsor Review & Feedback Channel
+            </h3>
+            <p style="color: var(--text-secondary); margin-bottom: 24px;">
+                Continuous communication between corporate engineering scouts and student developers ensures technical quality, adherence to industry standards, and timely milestone disbursements.
+            </p>
+
+            <form method="POST" action="{{ url_for('send_message') }}">
+                <input type="hidden" name="project_id" value="{{ project['id'] }}">
+                <input type="hidden" name="recipient_id" value="{{ project['student_id'] if session.get('role') == 'company' else 4 }}">
+
+                <div class="form-group">
+                    <label class="form-label">Send Message or Review Feedback</label>
+                    <textarea name="message" class="form-control" rows="4" placeholder="Type milestone feedback, architectural recommendations, or review meeting request..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-paper-plane"></i> Submit Feedback
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

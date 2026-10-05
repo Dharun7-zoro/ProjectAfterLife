@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project['project_title'] }} | Project After Life{% endblock %}
+
+{% block content %}
+<div class="container" data-current-project-id="{{ project['id'] }}">
+    <!-- Breadcrumb & Status -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+        <div style="font-size: 0.88rem; color: var(--text-muted);">
+            <a href="{{ url_for('company_explorer') }}">Project Explorer</a> &gt; 
+            <span style="color: var(--text-secondary);">{{ project['domain'] }}</span> &gt;
+            <span>{{ project['project_title'] }}</span>
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <span class="badge badge-published">{{ project['domain'] }}</span>
+            <span class="badge 
+                {% if project['funding_status'] == 'Funding Approved' %}badge-funded
+                {% elif project['funding_status'] == 'Funding Proposed' %}badge-proposed
+                {% elif project['funding_status'] == 'Discussion' %}badge-shortlisted
+                {% else %}badge-approved{% endif %}">
+                Status: {{ project['funding_status'] if project['funding_status'] != 'None' else project['submission_status'] }}
+            </span>
+            {% if session.get('role') == 'company' %}
+                <button type="button" class="btn btn-secondary btn-sm btn-save-project" data-project-id="{{ project['id'] }}">
+                    {% if is_saved %}<span style="color:#fbbf24;">★ Saved</span>{% else %}☆ Save Project{% endif %}
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Hero Header Card -->
+    <div class="glass-panel" style="padding: 36px; margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+            <div style="max-width: 820px;">
+                <div style="font-size: 0.85rem; color: #818cf8; font-weight: 700; margin-bottom: 6px; text-transform: uppercase;">
+                    <i class="fa-solid fa-trophy"></i> Built for: {{ project['hackathon_name'] }}
+                </div>
+                <h1 style="font-size: 2.3rem; margin-bottom: 12px; line-height: 1.25;">
+                    {{ project['project_title'] }}
+                </h1>
+                
+                <div style="display: flex; gap: 18px; font-size: 0.9rem; color: var(--text-secondary); flex-wrap: wrap; margin-bottom: 20px;">
+                    <span><i class="fa-solid fa-user-graduate" style="color: var(--secondary);"></i> <strong>{{ project['student_name'] }}</strong></span>
+                    <span><i class="fa-solid fa-building-columns" style="color: var(--secondary);"></i> {{ project['college_name'] }} ({{ project['department'] }})</span>
+                    {% if project['team_members'] %}
+                        <span><i class="fa-solid fa-users" style="color: var(--secondary);"></i> Team: {{ project['team_members'] }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Links Bar: GitHub, Demo, Documentation, Presentation -->
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <a href="{{ project['github_url'] }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.08);">
+                        <i class="fa-brands fa-github"></i> View GitHub Repository
+                    </a>
+                    {% if project['demo_url'] %}
+                        <a href="{{ project['demo_url'] }}" target="_blank" rel="noopener" class="btn btn-outline-cyan btn-sm">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Live Demo
+                        </a>
+                    {% endif %}
+                    {% if project['documentation_url'] %}
+                        <a href="{{ project['documentation_url'] }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                            <i class="fa-solid fa-book"></i> Documentation
+                        </a>
+                    {% endif %}
+                    {% if project['presentation_url'] %}
+                        <a href="{{ project['presentation_url'] }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                            <i class="fa-solid fa-file-powerpoint"></i> Presentation Deck
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Funding & Quick Action Widget -->
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; min-width: 260px; text-align: center;">
+                <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px;">
+                    Expected Funding
+                </span>
+                <div style="font-size: 2.2rem; font-weight: 800; color: #34d399; margin-bottom: 12px;">
+                    ${{ "{:,.0f}".format(project['expected_funding']) }}
+                </div>
+
+                {% if session.get('role') == 'company' or session.get('role') == 'admin' %}
+                    <a href="{{ url_for('project_evaluate', project_id=project['id']) }}" class="btn btn-primary" style="width: 100%; margin-bottom: 8px;">
+                        <i class="fa-solid fa-scale-balanced"></i> Evaluate & Propose Funding
+                    </a>
+                    <a href="#companyActions" class="btn btn-secondary btn-sm" style="width: 100%;">
+                        <i class="fa-solid fa-envelope"></i> Quick Scout Actions
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('project_development', project_id=project['id']) }}" class="btn btn-primary btn-sm" style="width: 100%;">
+                        <i class="fa-solid fa-laptop-code"></i> View Development Progress
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid: Project Details & AI Analysis -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+        <!-- Left Column: Detailed Specifications -->
+        <div>
+            <!-- Problem Statement -->
+            <div class="glass-panel" style="padding: 28px; margin-bottom: 24px;">
+                <h3 style="font-size: 1.2rem; color: #f87171; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-circle-exclamation"></i> Problem Statement
+                </h3>
+                <p style="font-size: 1rem; color: #cbd5e1; line-height: 1.6;">
+                    {{ project['problem_statement'] }}
+                </p>
+            </div>
+
+            <!-- Proposed Solution -->
+            <div class="glass-panel" style="padding: 28px; margin-bottom: 24px;">
+                <h3 style="font-size: 1.2rem; color: #34d399; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-lightbulb"></i> Proposed Solution
+                </h3>
+                <p style="font-size: 1rem; color: #cbd5e1; line-height: 1.6;">
+                    {{ project['proposed_solution'] }}
+                </p>
+            </div>
+
+            <!-- Detailed Description -->
+            <div class="glass-panel" style="padding: 28px; margin-bottom: 24px;">
+                <h3 style="font-size: 1.2rem; color: #fff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-file-lines"></i> Detailed Project Narrative & Hackathon Prototype
+                </h3>
+                <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.7; white-space: pre-line;">
+                    {{ project['project_description'] }}
+                </p>
+
+                <!-- Technologies Used -->
+                <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                    <strong style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 10px;">
+                        Technology Stack Breakdown:
+                    </strong>
+                    <div class="tech-tag-list">
+                        {% for tech in project['technologies_used'].split(',') %}
+                            <span class="tech-tag" style="font-size: 0.82rem; padding: 5px 12px;">{{ tech.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Project Analysis Feature (Module 2 Requirement) -->
+            <div class="ai-analysis-box" id="aiAnalysis">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div class="ai-header-badge">
+                        <i class="fa-solid fa-brain"></i> AI Project Analysis Report
+                    </div>
+                    <span style="font-size: 0.78rem; color: #a5b4fc;">Autonomous Analytical Synthesis</span>
+                </div>
+
+                <div class="ai-grid">
+                    <!-- 1. Problem Relevance -->
+                    <div class="ai-item-card">
+                        <div class="ai-item-title"><i class="fa-solid fa-bullseye"></i> Problem Relevance</div>
+                        <div class="ai-item-desc">{{ ai_analysis.get('problem_relevance') }}</div>
+                    </div>
+
+                    <!-- 2. Innovation Indicators -->
+                    <div class="ai-item-card">
+                        <div class="ai-item-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Innovation Indicators</div>
+                        <div class="ai-item-desc">{{ ai_analysis.get('innovation_indicators') }}</div>
+                    </div>
+
+                    <!-- 3. Technical Complexity -->
+                    <div class="ai-item-card">
+                        <div class="ai-item-title"><i class="fa-solid fa-gauge-high"></i> Technical Complexity</div>
+                        <div class="ai-item-desc">{{ ai_analysis.get('technical_complexity') }}</div>
+                    </div>
+
+                    <!-- 4. Possible Industry Applications -->
+                    <div class="ai-item-card">
+                        <div class="ai-item-title"><i class="fa-solid fa-industry"></i> Industry Applications</div>
+                        <div class="ai-item-desc">{{ ai_analysis.get('possible_industry_applications') }}</div>
+                    </div>
+
+                    <!-- 5. Scalability Considerations -->
+                    <div class="ai-item-card">
+                        <div class="ai-item-title"><i class="fa-solid fa-chart-line"></i> Scalability Considerations</div>
+                        <div class="ai-item-desc">{{ ai_analysis.get('scalability_considerations') }}</div>
+                    </div>
+
+                    <!-- 6. Development Requirements -->
+                    <div class="ai-item-card">
+                        <div class="ai-item-title"><i class="fa-solid fa-screwdriver-wrench"></i> Potential Dev Requirements</div>
+                        <div class="ai-item-desc">{{ ai_analysis.get('potential_development_requirements') }}</div>
+                    </div>
+                </div>
+
+                <!-- 7. Suggested Questions for Student Team -->
+                <div style="margin-top: 18px; background: rgba(15, 23, 42, 0.6); padding: 18px; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.06);">
+                    <div class="ai-item-title" style="color: #fbbf24; margin-bottom: 10px;">
+                        <i class="fa-solid fa-clipboard-question"></i> Suggested Questions for Student Founder Interview:
+                    </div>
+                    <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6;">
+                        {% for q in ai_analysis.get('suggested_questions', []) %}
+                            <li style="margin-bottom: 6px;">{{ q }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Strict Supporting Information Disclaimer -->
+                <div class="ai-disclaimer">
+                    <i class="fa-solid fa-shield-halved"></i> 
+                    <strong>Supporting Information Only:</strong> The AI analysis must only provide supporting information. The company should make the final decision.
+                </div>
+            </div>
+
+            <!-- Discussion & Messages Section -->
+            <div class="glass-panel" style="padding: 28px;" id="discussion">
+                <h3 style="font-size: 1.2rem; color: #fff; margin-bottom: 16px;">
+                    <i class="fa-solid fa-comments"></i> Direct Founder Discussion & Q&A
+                </h3>
+
+                <form method="POST" action="{{ url_for('send_message') }}" style="margin-bottom: 24px;">
+                    <input type="hidden" name="project_id" value="{{ project['id'] }}">
+                    <input type="hidden" name="recipient_id" value="{{ project['student_id'] if session.get('role') == 'company' else (current_interest['company_id'] if current_interest else 4) }}">
+
+                    <div class="form-group">
+                        <textarea name="message" class="form-control" rows="3" placeholder="Ask the student team a technical question, request architecture diagrams, or inquire about prototype testing..." required></textarea>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fa-solid fa-paper-plane"></i> Send Direct Message
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Column: Company Actions & Innovator Profile -->
+        <div>
+            <!-- Innovator Contact Card -->
+            <div class="glass-panel" style="padding: 24px; margin-bottom: 24px;">
+                <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #fff;">
+                    <i class="fa-solid fa-address-card"></i> Student Founder Profile
+                </h3>
+
+                <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+                    <div style="width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: white;">
+                        {{ project['student_name'][0] }}
+                    </div>
+                    <div>
+                        <strong style="color: #fff; font-size: 1.05rem;">{{ project['student_name'] }}</strong>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">{{ project['college_name'] }}</div>
+                    </div>
+                </div>
+
+                <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;">
+                    <strong>Department:</strong> {{ project['department'] }}<br>
+                    <strong>Contact Details:</strong> {{ project['contact_details'] }}
+                </div>
+            </div>
+
+            <!-- Quick Company Scout Actions Box (Module 2 & 3) -->
+            <div class="glass-panel" style="padding: 24px; margin-bottom: 24px;" id="companyActions">
+                <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #22d3ee;">
+                    <i class="fa-solid fa-bolt"></i> Company Scout Actions
+                </h3>
+
+                {% if session.get('role') == 'company' or session.get('role') == 'admin' %}
+                    <form method="POST" action="{{ url_for('project_funding_action', project_id=project['id']) }}" style="display: flex; flex-direction: column; gap: 10px;">
+                        <input type="hidden" name="action" value="interest">
+                        <button type="submit" class="btn btn-secondary" style="width: 100%; text-align: left; justify-content: flex-start;">
+                            <i class="fa-regular fa-star" style="color: #fbbf24;"></i> Express Company Interest
+                        </button>
+                    </form>
+
+                    <form method="POST" action="{{ url_for('project_funding_action', project_id=project['id']) }}" style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+                        <input type="hidden" name="action" value="shortlist">
+                        <button type="submit" class="btn btn-secondary" style="width: 100%; text-align: left; justify-content: flex-start;">
+                            <i class="fa-solid fa-bookmark" style="color: #c084fc;"></i> Shortlist for Pipeline
+                        </button>
+                    </form>
+
+                    <a href="{{ url_for('project_evaluate', project_id=project['id']) }}" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                        <i class="fa-solid fa-scale-balanced"></i> Full Evaluation & Funding
+                    </a>
+                {% else %}
+                    <p style="font-size: 0.88rem; color: var(--text-secondary);">
+                        Signed in as student. To test corporate actions such as shortlisting, showing interest, or proposing funding, switch to a company account above.
+                    </p>
+                    <a href="{{ url_for('switch_role', role='company') }}" class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 8px;">
+                        Switch to Company Scout View
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Milestones Quick Peek -->
+            {% if milestones %}
+                <div class="glass-panel" style="padding: 24px;">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 14px; color: #fff;">
+                        <i class="fa-solid fa-flag-checkered"></i> Roadmap Milestones
+                    </h3>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        {% for m in milestones %}
+                            <div style="padding: 10px 12px; background: rgba(0,0,0,0.2); border-radius: var(--radius-sm); border-left: 3px solid {% if m['status'] == 'Approved by Company' %}#10b981{% elif m['status'] == 'In Progress' %}#6366f1{% else %}#64748b{% endif %};">
+                                <strong style="font-size: 0.85rem; color: #fff; display: block;">{{ m['title'] }}</strong>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">{{ m['stage'] }} • {{ m['status'] }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

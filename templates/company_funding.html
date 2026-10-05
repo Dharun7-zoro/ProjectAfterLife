@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Corporate Funding Dashboard | Project After Life{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <div class="role-badge company" style="margin-bottom: 8px;">
+                <i class="fa-solid fa-hand-holding-dollar"></i> Module 3: Corporate Funding Management
+            </div>
+            <h1 style="font-size: 2.2rem;">Commercial Funding Ledger</h1>
+            <p style="color: var(--text-secondary); margin-top: 4px; font-size: 0.95rem;">
+                Maintain clear financial records of proposed offers, approved tranches, funding dates, and active project statuses.
+            </p>
+        </div>
+
+        <a href="{{ url_for('company_explorer') }}" class="btn btn-primary">
+            <i class="fa-solid fa-compass"></i> Discover More Projects
+        </a>
+    </div>
+
+    <!-- Aggregate Stats Row -->
+    <div class="stats-row" style="margin-bottom: 36px;">
+        <div class="stat-card">
+            <div class="stat-value primary">{{ stats['total_deals'] or 0 }}</div>
+            <div class="stat-label">Total Engaged Deals</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value cyan">${{ "{:,.0f}".format(stats['total_proposed_amount'] or 0) }}</div>
+            <div class="stat-label">Total Proposed Capital</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value emerald">${{ "{:,.0f}".format(stats['total_approved_amount'] or 0) }}</div>
+            <div class="stat-label">Committed / Approved Capital</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value amber">{{ stats['active_funded_count'] or 0 }}</div>
+            <div class="stat-label">Funded Active Startups</div>
+        </div>
+    </div>
+
+    <!-- Funding Records Table -->
+    <div class="glass-panel" style="padding: 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="font-size: 1.2rem; color: #fff;">
+                <i class="fa-solid fa-receipt"></i> Committed & Proposed Funding Records
+            </h3>
+            <span class="badge badge-published">{{ funding_records|length }} Active Pipeline Items</span>
+        </div>
+
+        {% if funding_records %}
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Project Title & Domain</th>
+                            <th>Student Innovator</th>
+                            <th>Proposed Amount</th>
+                            <th>Approved Amount</th>
+                            <th>Funding Date</th>
+                            <th>Funding Status</th>
+                            <th>Project Stage</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in funding_records %}
+                            <tr>
+                                <td>
+                                    <strong style="color: #fff; font-size: 0.95rem;">
+                                        <a href="{{ url_for('project_detail', project_id=record['project_id']) }}">{{ record['project_title'] }}</a>
+                                    </strong>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">{{ record['domain'] }}</div>
+                                </td>
+                                <td>
+                                    <span style="color: #fff;">{{ record['student_name'] }}</span>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted);">{{ record['student_college'] }}</div>
+                                </td>
+                                <td style="font-weight: 600; color: #22d3ee;">
+                                    ${{ "{:,.2f}".format(record['proposed_amount']) if record['proposed_amount'] else '—' }}
+                                </td>
+                                <td style="font-weight: 700; color: #34d399; font-size: 1.05rem;">
+                                    ${{ "{:,.2f}".format(record['approved_amount']) if record['approved_amount'] else '—' }}
+                                </td>
+                                <td style="font-size: 0.82rem; color: var(--text-secondary);">
+                                    {{ record['funding_date'][:10] if record['funding_date'] else 'Pending' }}
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if record['status'] == 'Funding Approved' %}badge-funded
+                                        {% elif record['status'] == 'Funding Proposed' %}badge-proposed
+                                        {% elif record['status'] == 'Shortlisted' %}badge-shortlisted
+                                        {% elif record['status'] == 'Discussion' %}badge-review
+                                        {% elif record['status'] == 'Rejected' %}badge-rejected
+                                        {% else %}badge-interest{% endif %}">
+                                        {{ record['status'] }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-published">
+                                        {{ record['development_stage'] }} ({{ record['progress_percentage'] }}%)
+                                    </span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 6px;">
+                                        <a href="{{ url_for('project_evaluate', project_id=record['project_id']) }}" class="btn btn-secondary btn-sm" title="Re-evaluate or adjust offer">
+                                            <i class="fa-solid fa-pen-to-square"></i> Evaluate
+                                        </a>
+                                        {% if record['status'] == 'Funding Approved' %}
+                                            <a href="{{ url_for('project_development', project_id=record['project_id']) }}" class="btn btn-success btn-sm" title="Open development tracking">
+                                                <i class="fa-solid fa-code"></i> Sprints
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 40px;">
+                <p style="color: var(--text-secondary);">No active funding records found. Discover student innovations in the Explorer to propose or approve funding.</p>
+                <a href="{{ url_for('company_explorer') }}" class="btn btn-secondary" style="margin-top: 14px;">
+                    Explore Projects Now
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

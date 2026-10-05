@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Hackathon Project | Project After Life{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 960px; margin: 20px auto 60px;">
+    <!-- Breadcrumb -->
+    <div style="margin-bottom: 20px; font-size: 0.88rem; color: var(--text-muted);">
+        <a href="{{ url_for('student_dashboard') }}">Student Hub</a> &gt; <span>Submit New Project</span>
+    </div>
+
+    <div class="glass-panel" style="padding: 40px;">
+        <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 24px; margin-bottom: 30px;">
+            <div class="role-badge student" style="margin-bottom: 8px;">
+                <i class="fa-solid fa-file-arrow-up"></i> Module 1: Student Project Submission
+            </div>
+            <h1 style="font-size: 2.1rem;">Submit Your Hackathon Innovation</h1>
+            <p style="color: var(--text-secondary); margin-top: 6px; font-size: 0.95rem;">
+                Give your unfunded hackathon prototype a second life. Complete all fields below to have your project reviewed and published to leading corporate scouts.
+            </p>
+        </div>
+
+        <form method="POST" action="{{ url_for('project_submit') }}" id="submissionForm">
+            <!-- Section 1: Team & Academic Identity -->
+            <h3 style="font-size: 1.15rem; color: #818cf8; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-users"></i> 1. Innovator & Academic Details
+            </h3>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="student_name">Lead Student Name *</label>
+                    <input type="text" id="student_name" name="student_name" class="form-control" 
+                           value="{{ form_data.get('student_name', '') }}" placeholder="e.g. Aarav Sharma" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="college_name">College / University *</label>
+                    <input type="text" id="college_name" name="college_name" class="form-control" 
+                           value="{{ form_data.get('college_name', '') }}" placeholder="e.g. IIT Madras" required>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="department">Department / Branch *</label>
+                    <input type="text" id="department" name="department" class="form-control" 
+                           value="{{ form_data.get('department', '') }}" placeholder="e.g. Computer Science & Engineering" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="team_members">Team Members & Roles</label>
+                    <input type="text" id="team_members" name="team_members" class="form-control" 
+                           value="{{ form_data.get('team_members', '') }}" placeholder="e.g. Aarav Sharma (Lead), Neha Sen (ML), Vikram Raj (Firmware)">
+                    <div class="form-hint">List teammate names and their key technical roles.</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="hackathon_name">Origin Hackathon Name *</label>
+                <input type="text" id="hackathon_name" name="hackathon_name" class="form-control" 
+                       value="{{ form_data.get('hackathon_name', '') }}" placeholder="e.g. Smart India Hackathon 2025, HackMIT, ETHIndia" required>
+                <div class="form-hint">Where was this project originally ideated or developed?</div>
+            </div>
+
+            <!-- Section 2: Technical Project Formulation -->
+            <h3 style="font-size: 1.15rem; color: #22d3ee; margin: 36px 0 18px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-lightbulb"></i> 2. Project Architecture & Formulation
+            </h3>
+
+            <div class="form-group">
+                <label class="form-label" for="project_title">Project Title *</label>
+                <input type="text" id="project_title" name="project_title" class="form-control" 
+                       value="{{ form_data.get('project_title', '') }}" placeholder="e.g. CardioLens: Portable Edge AI Arrhythmia Diagnostic Suite" required>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="domain">Project Domain *</label>
+                    <select id="domain" name="domain" class="form-control" required>
+                        <option value="">-- Select Industry Domain --</option>
+                        <option value="Healthcare & MedTech" {% if form_data.get('domain') == 'Healthcare & MedTech' %}selected{% endif %}>Healthcare & MedTech</option>
+                        <option value="CleanTech & Sustainability" {% if form_data.get('domain') == 'CleanTech & Sustainability' %}selected{% endif %}>CleanTech & Sustainability</option>
+                        <option value="AI & Machine Learning" {% if form_data.get('domain') == 'AI & Machine Learning' %}selected{% endif %}>AI & Machine Learning</option>
+                        <option value="Web3 & Cybersecurity" {% if form_data.get('domain') == 'Web3 & Cybersecurity' %}selected{% endif %}>Web3 & Cybersecurity</option>
+                        <option value="AgriTech & AI" {% if form_data.get('domain') == 'AgriTech & AI' %}selected{% endif %}>AgriTech & AI</option>
+                        <option value="Robotics & IoT" {% if form_data.get('domain') == 'Robotics & IoT' %}selected{% endif %}>Robotics & IoT</option>
+                        <option value="EdTech & Accessibility" {% if form_data.get('domain') == 'EdTech & Accessibility' %}selected{% endif %}>EdTech & Accessibility</option>
+                        <option value="FinTech & Commerce" {% if form_data.get('domain') == 'FinTech & Commerce' %}selected{% endif %}>FinTech & Commerce</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="technologies_used">Technologies Used (Comma Separated) *</label>
+                    <input type="text" id="technologies_used" name="technologies_used" class="form-control" 
+                           value="{{ form_data.get('technologies_used', '') }}" placeholder="e.g. Python, PyTorch, FastAPI, React Native, SQLite" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="problem_statement">Problem Statement *</label>
+                <textarea id="problem_statement" name="problem_statement" class="form-control" rows="3" 
+                          placeholder="Clearly articulate the specific industry bottleneck or human pain point your project addresses..." required>{{ form_data.get('problem_statement', '') }}</textarea>
+                <div class="form-hint">Tip: Quantify the pain point (e.g. "Causes 4-6 hour delay in rural cardiac triage").</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="proposed_solution">Proposed Solution *</label>
+                <textarea id="proposed_solution" name="proposed_solution" class="form-control" rows="3" 
+                          placeholder="Explain how your technical solution works and what makes it innovative..." required>{{ form_data.get('proposed_solution', '') }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="project_description">Detailed Project Description *</label>
+                <textarea id="project_description" name="project_description" class="form-control" rows="5" 
+                          placeholder="Provide the complete story: how you engineered the prototype during the hackathon, benchmark results, and what was achieved..." required>{{ form_data.get('project_description', '') }}</textarea>
+            </div>
+
+            <!-- Section 3: Code Repository & Live Links (Validated) -->
+            <h3 style="font-size: 1.15rem; color: #34d399; margin: 36px 0 18px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-code"></i> 3. Repositories, Documentation & Assets
+            </h3>
+
+            <div class="form-group">
+                <label class="form-label" for="github_url">
+                    <i class="fa-brands fa-github"></i> GitHub Repository Link * (Validated)
+                </label>
+                <input type="url" id="github_url" name="github_url" class="form-control" 
+                       value="{{ form_data.get('github_url', '') }}" placeholder="https://github.com/username/project-repo" required>
+                <div id="github_feedback" class="form-hint" style="font-weight: 500;">
+                    Required format: https://github.com/username/repository
+                </div>
+            </div>
+
+            <div class="grid-3">
+                <div class="form-group">
+                    <label class="form-label" for="demo_url">Live Demo Link (URL)</label>
+                    <input type="url" id="demo_url" name="demo_url" class="form-control" 
+                           value="{{ form_data.get('demo_url', '') }}" placeholder="https://demo.yourproject.com">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="documentation_url">Project Documentation Link</label>
+                    <input type="url" id="documentation_url" name="documentation_url" class="form-control" 
+                           value="{{ form_data.get('documentation_url', '') }}" placeholder="https://docs.yourproject.com">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="presentation_url">Presentation / Deck Link</label>
+                    <input type="url" id="presentation_url" name="presentation_url" class="form-control" 
+                           value="{{ form_data.get('presentation_url', '') }}" placeholder="https://slides.yourproject.com">
+                </div>
+            </div>
+
+            <!-- Section 4: Commercial Funding & Contact -->
+            <h3 style="font-size: 1.15rem; color: #fbbf24; margin: 36px 0 18px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-hand-holding-dollar"></i> 4. Funding Request & Student Contact
+            </h3>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="expected_funding">Expected Funding Amount ($ USD) *</label>
+                    <input type="number" id="expected_funding" name="expected_funding" step="100" min="0" class="form-control" 
+                           value="{{ form_data.get('expected_funding', '10000') }}" placeholder="10000" required>
+                    <div class="form-hint">Estimated capital needed to reach a production MVP or pilot.</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="contact_details">Student Contact Details *</label>
+                    <input type="text" id="contact_details" name="contact_details" class="form-control" 
+                           value="{{ form_data.get('contact_details', '') }}" placeholder="aarav@college.edu | +91 98765 43210 | linkedin.com/in/aarav" required>
+                    <div class="form-hint">Email, phone number, and LinkedIn profiles for communication.</div>
+                </div>
+            </div>
+
+            <!-- AI Engine Notice -->
+            <div class="ai-analysis-box" style="margin-top: 30px;">
+                <div class="ai-header-badge">
+                    <i class="fa-solid fa-sparkles"></i> Automated AI Intelligence
+                </div>
+                <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5;">
+                    Upon submission, our AI engine will analyze your problem statement, solution novelty, and tech stack to generate an objective 8-factor evaluation report for prospective company scouts.
+                </p>
+            </div>
+
+            <!-- Submit Button -->
+            <div style="margin-top: 36px; display: flex; justify-content: flex-end; gap: 14px;">
+                <a href="{{ url_for('student_dashboard') }}" class="btn btn-secondary btn-lg">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-paper-plane"></i> Submit Project for Review
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

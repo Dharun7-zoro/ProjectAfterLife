@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Project After Life | Reviving Unfunded Hackathon Innovations{% endblock %}</title>
+    <meta name="description" content="A platform for students whose projects were not selected or funded in hackathons to showcase their innovations to companies, venture scouts, and industry experts.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Unified CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body data-user-role="{{ current_user['role'] if current_user else 'student' }}">
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="{{ url_for('index') }}" class="navbar-brand">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-seedling"></i>
+                </div>
+                <span>Project <span style="color: var(--secondary);">After Life</span></span>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="{{ url_for('company_explorer') }}" class="nav-link {% if request.endpoint == 'company_explorer' %}active{% endif %}"><i class="fa-solid fa-compass"></i> Explore Projects</a></li>
+                {% if current_user and current_user['role'] in ['student', 'admin'] %}
+                    <li><a href="{{ url_for('student_dashboard') }}" class="nav-link {% if request.endpoint == 'student_dashboard' %}active{% endif %}"><i class="fa-solid fa-graduation-cap"></i> Student Hub</a></li>
+                    <li><a href="{{ url_for('project_submit') }}" class="nav-link {% if request.endpoint == 'project_submit' %}active{% endif %}"><i class="fa-solid fa-plus-circle"></i> Submit Project</a></li>
+                {% endif %}
+                {% if current_user and current_user['role'] in ['company', 'admin'] %}
+                    <li><a href="{{ url_for('company_funding') }}" class="nav-link {% if request.endpoint == 'company_funding' %}active{% endif %}"><i class="fa-solid fa-hand-holding-dollar"></i> Funding Dashboard</a></li>
+                {% endif %}
+            </ul>
+
+            <div class="nav-actions">
+                {% if current_user %}
+                    <!-- Quick Role Switcher for Seamless Testing -->
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="role-badge {{ current_user['role'] }}">
+                            <i class="fa-solid {% if current_user['role'] == 'student' %}fa-user-graduate{% else %}fa-building{% endif %}"></i>
+                            {{ current_user['role'] }}
+                        </span>
+                        
+                        <a href="{{ url_for('switch_role', role='company' if current_user['role'] == 'student' else 'student') }}" 
+                           class="btn btn-secondary btn-sm" 
+                           title="Switch between Student and Company views for testing"
+                           style="font-size: 0.76rem; padding: 4px 10px;">
+                            <i class="fa-solid fa-arrows-rotate"></i> Switch to {% if current_user['role'] == 'student' %}Company{% else %}Student{% endif %}
+                        </a>
+                    </div>
+
+                    <!-- Notifications Dropdown Button -->
+                    <a href="{{ url_for('notifications_view') }}" class="btn btn-secondary btn-sm" style="position: relative; padding: 6px 12px;" title="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        {% if unread_notifications_count > 0 %}
+                            <span style="position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; border-radius: 9999px; font-size: 0.68rem; padding: 1px 6px; font-weight: bold;">
+                                {{ unread_notifications_count }}
+                            </span>
+                        {% endif %}
+                    </a>
+
+                    <!-- User Name & Logout -->
+                    <span style="font-size: 0.88rem; color: var(--text-secondary); margin-left: 4px;">{{ current_user['name'].split()[0] }}</span>
+                    <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm" title="Sign Out">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </a>
+                {% else %}
+                    <!-- Demo Quick Login Buttons -->
+                    <a href="{{ url_for('demo_login', role='student') }}" class="btn btn-secondary btn-sm" style="font-size: 0.78rem;">
+                        <i class="fa-solid fa-user-graduate"></i> Demo Student
+                    </a>
+                    <a href="{{ url_for('demo_login', role='company') }}" class="btn btn-secondary btn-sm" style="font-size: 0.78rem;">
+                        <i class="fa-solid fa-building"></i> Demo Company
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-right-to-bracket"></i> Sign In
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Global Alerts Container -->
+    <div class="container flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <div>
+                            <i class="fa-solid {% if category == 'success' %}fa-circle-check{% elif category == 'danger' %}fa-circle-exclamation{% elif category == 'warning' %}fa-triangle-exclamation{% else %}fa-circle-info{% endif %}" style="margin-right: 8px;"></i>
+                            {{ message }}
+                        </div>
+                        <button type="button" class="alert-close" style="background:none; border:none; color:inherit; cursor:pointer; font-size:1.1rem;">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Dynamic Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Inbuilt AI Chatbot Floating Widget (Available on every page) -->
+    <div class="chatbot-widget-btn" id="aiChatWidgetBtn" title="Open AI Project Assistant">
+        <i class="fa-solid fa-robot"></i>
+    </div>
+
+    <div class="chatbot-widget-modal" id="aiChatWidgetModal">
+        <div class="chatbot-header">
+            <div class="chatbot-header-info">
+                <div class="chatbot-avatar">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+                <div>
+                    <h4 style="font-size: 0.95rem; margin-bottom: 2px;">Project AI Assistant</h4>
+                    <span id="aiChatRoleBadge" class="badge badge-published" style="font-size: 0.65rem; padding: 2px 6px;">STUDENT MODE</span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button type="button" id="aiChatClearBtn" title="Clear Chat" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem;">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+                <button type="button" id="aiChatCloseBtn" title="Close" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="chatbot-messages" id="aiChatMessages">
+            <div class="chat-bubble bot">
+                <strong>Hello! I am your Project After Life AI Assistant.</strong><br>
+                I provide intelligent guidance for 
+                <strong>{% if current_user and current_user['role'] == 'company' %}Company Scouts & Industry Evaluators{% else %}Student Innovators{% endif %}</strong>.
+                <br><br>
+                How can I assist you with your projects, evaluations, or milestone tracking today?
+            </div>
+        </div>
+
+        <!-- Interactive Quick Prompt Chips -->
+        <div class="chatbot-chips" id="aiChatChips"></div>
+
+        <!-- Message Input Bar -->
+        <form class="chatbot-input-bar" id="aiChatForm">
+            <input type="text" class="chatbot-input" id="aiChatInput" placeholder="Ask about project, tech, funding, or milestones..." autocomplete="off">
+            <button type="submit" class="chatbot-send-btn" title="Send Message">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <span style="font-weight: 700; color: #fff;">Project After Life</span>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">
+                    Empowering student hackathon innovators to connect with industry backers, seed funding, and corporate mentorship.
+                </p>
+            </div>
+            <div style="display: flex; gap: 20px; font-size: 0.85rem; color: var(--text-secondary);">
+                <span>Module 1: Submission</span> •
+                <span>Module 2: Explorer & AI</span> •
+                <span>Module 3: Funding</span> •
+                <span>Module 4: Dev Tracking</span>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">
+                &copy; {{ current_year }} Project After Life. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
